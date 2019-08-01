@@ -20,7 +20,7 @@ contract TestCalls {
 		_;
 	}
 
-	function TestCalls() setMsgFields public {
+	constructor() setMsgFields() public {
 		// This constructor will be used to test the creation via multisig wallet
 	}
 
