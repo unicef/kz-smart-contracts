@@ -6,12 +6,21 @@ Deploy:
 truffle compile
 truffle migrate <account1,account2,...,accountN> <requiredConfirmations>
 
+truffle migrate 0xaed58811d50a0556c0d853108c88da494f1efe8e,0x647bfd06b0e9943d054287aedc7235e6f75e50b7 2
+
+
+
 For redeploy:
 truffle migrate --reset
 
 
-Run contract tests: (based on Gnosis samples)
+Run contract tests:
 npm test
+
+Run Mocha test in truffle:
+1) Before need run "ganache-cli"
+2) truffle console
+3) test ./test/javascript/testMultiSigWallet.js
 
 
 Call contract function:

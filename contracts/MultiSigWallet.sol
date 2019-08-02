@@ -44,7 +44,8 @@ contract MultiSigWallet {
      *  Modifiers
      */
     modifier onlyWallet() {
-        require(msg.sender == address(this));
+        ///require(msg.sender == address(this));
+        require(isOwner[msg.sender]);
         _;
     }
 
@@ -379,6 +380,7 @@ contract MultiSigWallet {
         uint[] memory transactionIdsTemp = new uint[](transactionCount);
         uint count = 0;
         uint i;
+        if (to >= transactionCount) to = transactionCount;
         for (i=0; i<transactionCount; i++)
             if (   pending && !transactions[i].executed
                 || executed && transactions[i].executed)
@@ -390,4 +392,16 @@ contract MultiSigWallet {
         for (i=from; i<to; i++)
             _transactionIds[i - from] = transactionIdsTemp[i];
     }
+
+
+/*
+    function getSender(address destination, uint value, bytes data)
+        public
+	constant
+        returns (address sender)
+    {
+        sender = msg.sender;
+    }
+*/
+
 }
