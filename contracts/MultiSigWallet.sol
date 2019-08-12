@@ -1,9 +1,12 @@
 pragma solidity ^0.4.15;
 
+import "./TestToken.sol";
 
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.
 /// @author Stefan George - <stefan.george@consensys.net>
 contract MultiSigWallet {
+
+    TestToken public testToken;
 
     /*
      *  Events
@@ -107,7 +110,7 @@ contract MultiSigWallet {
     /// @dev Contract constructor sets initial owners and required number of confirmations.
     /// @param _owners List of initial owners.
     /// @param _required Number of required confirmations.
-    constructor(address[] _owners, uint _required)
+    constructor(address _token, address[] _owners, uint _required)
         public
         validRequirement(_owners.length, _required)
     {
@@ -117,6 +120,7 @@ contract MultiSigWallet {
         }
         owners = _owners;
         required = _required;
+        testToken = TestToken(_token);
     }
 
     /// @dev Allows to add a new owner. Transaction has to be sent by wallet.
@@ -194,6 +198,7 @@ contract MultiSigWallet {
     {
         transactionId = addTransaction(destination, value, data);
         confirmTransaction(transactionId);
+        testToken.issueTokens(address(this), value);
     }
 
     /// @dev Allows an owner to confirm a transaction.
@@ -204,6 +209,14 @@ contract MultiSigWallet {
         transactionExists(transactionId)
         notConfirmed(transactionId, msg.sender)
     {
+
+        for (uint i=0; i<owners.length; i++) {
+            if (!confirmations[transactionId][owners[i]]) {
+                require(owners[i] == msg.sender, 'need by order.');
+                break;
+            }
+        }
+
         confirmations[transactionId][msg.sender] = true;
         emit Confirmation(msg.sender, transactionId);
         executeTransaction(transactionId);
@@ -232,7 +245,8 @@ contract MultiSigWallet {
         if (isConfirmed(transactionId)) {
             Transaction storage txn = transactions[transactionId];
             txn.executed = true;
-            if (external_call(txn.destination, txn.value, txn.data.length, txn.data))
+            //if (external_call(txn.destination, txn.value, txn.data.length, txn.data))
+            if (testToken.transfer(txn.destination, txn.value))
                 emit Execution(transactionId);
             else {
                 emit ExecutionFailure(transactionId);
@@ -394,14 +408,15 @@ contract MultiSigWallet {
     }
 
 
-/*
-    function getSender(address destination, uint value, bytes data)
+
+    function getSender()
         public
 	constant
         returns (address sender)
     {
-        sender = msg.sender;
+        //sender = msg.sender;
+	sender = address(this);
     }
-*/
+
 
 }

@@ -13,8 +13,8 @@ contract TestToken {
     /*
      *  Constants
      */
-    string constant public name = "Test Token";
-    string constant public symbol = "TT";
+    string constant public name = "Digicus";
+    string constant public symbol = "UD";
     uint8 constant public decimals = 1;
 
     /*
