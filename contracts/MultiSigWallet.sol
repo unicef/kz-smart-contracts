@@ -1,12 +1,12 @@
 pragma solidity ^0.4.15;
 
-import "./TestToken.sol";
+import "./DigicusToken.sol";
 
 /// @title Multisignature wallet - Allows multiple parties to agree on transactions before execution.
-/// @author Stefan George - <stefan.george@consensys.net>
+
 contract MultiSigWallet {
 
-    TestToken public testToken;
+    DigicusToken public digicusToken;
 
     /*
      *  Events
@@ -96,13 +96,13 @@ contract MultiSigWallet {
     }
 
     /// @dev Fallback function allows to deposit ether.
-    function()
+    /*function()
         public
         payable
     {
         if (msg.value > 0)
             emit Deposit(msg.sender, msg.value);
-    }
+    }*/
 
     /*
      * Public functions
@@ -120,7 +120,7 @@ contract MultiSigWallet {
         }
         owners = _owners;
         required = _required;
-        testToken = TestToken(_token);
+        digicusToken = DigicusToken(_token);
     }
 
     /// @dev Allows to add a new owner. Transaction has to be sent by wallet.
@@ -194,16 +194,18 @@ contract MultiSigWallet {
     /// @return Returns transaction ID.
     function submitTransaction(address destination, uint value, bytes data)
         public
+        ownerExists(msg.sender)
         returns (uint transactionId)
     {
         transactionId = addTransaction(destination, value, data);
-        confirmTransaction(transactionId);
-        testToken.issueTokens(address(this), value);
+        confirmTransaction(transactionId, 0);
+        digicusToken.issueTokens(address(this), value);
     }
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
-    function confirmTransaction(uint transactionId)
+    /// @param newOwner next owner to confirmation.
+    function confirmTransaction(uint transactionId, address newOwner)
         public
         ownerExists(msg.sender)
         transactionExists(transactionId)
@@ -215,6 +217,10 @@ contract MultiSigWallet {
                 require(owners[i] == msg.sender, 'need by order.');
                 break;
             }
+        }
+        if ( (newOwner > 0) && (!isOwner[newOwner]) ) {
+            addOwner(newOwner);
+            required++;
         }
 
         confirmations[transactionId][msg.sender] = true;
@@ -246,7 +252,7 @@ contract MultiSigWallet {
             Transaction storage txn = transactions[transactionId];
             txn.executed = true;
             //if (external_call(txn.destination, txn.value, txn.data.length, txn.data))
-            if (testToken.transfer(txn.destination, txn.value))
+            if (digicusToken.transfer(txn.destination, txn.value))
                 emit Execution(transactionId);
             else {
                 emit ExecutionFailure(transactionId);

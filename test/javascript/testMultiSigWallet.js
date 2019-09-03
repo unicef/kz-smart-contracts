@@ -1,12 +1,12 @@
 const MultiSigWallet = artifacts.require('MultiSigWallet')
 const web3 = MultiSigWallet.web3
-const TestToken = artifacts.require('TestToken')
+const DigicusToken = artifacts.require('DigicusToken')
 //const TestCalls = artifacts.require('TestCalls')
 const utils = require('./utils')
 
 
 const deployToken = () => {
-	return TestToken.new()
+	return DigicusToken.new()
 }
 
 
@@ -22,17 +22,13 @@ contract('MultiSigWallet', (accounts) => {
 	let depositToken = 25;
 	let balances = [];
 	let balancesToken = [];
+	let adrZero = "0x0000000000000000000000000000000000000000";
 
 
     before('deploy', async function () {
 		tokenInstance = await deployToken();
 		assert.ok(tokenInstance);
 		console.log('tokenInstance', tokenInstance.address);
-
-		multisigInstance = await MultiSigWallet.new(tokenInstance.address, [accounts[0], accounts[1]], requiredConfirmations);
-		let a = await tokenInstance.balanceOf(multisigInstance.address);
-		console.log('multisigInstance', multisigInstance.address, a.toNumber() );
-		assert.ok(multisigInstance);
 
     })
 
@@ -58,7 +54,18 @@ contract('MultiSigWallet', (accounts) => {
 	});
 
 
-    it('submitTransaction', async function () {
+    it('multisigInstance', async function () {
+		multisigInstance = await MultiSigWallet.new(tokenInstance.address, [accounts[0], accounts[1]], requiredConfirmations);
+		let a = await tokenInstance.balanceOf(multisigInstance.address);
+		console.log('multisigInstance', multisigInstance.address, a.toNumber() );
+		assert.ok(multisigInstance);
+
+    })
+
+
+
+
+    it('submitTransaction 0=>3  0=>3', async function () {
 		await tokenInstance.issueTokens(accounts[0], depositToken);
 		let balance = await tokenInstance.balanceOf(accounts[0]);
 		assert.equal(balance.toNumber(), depositToken);
@@ -140,7 +147,7 @@ contract('MultiSigWallet', (accounts) => {
 
     it('confirmTransaction accounts[2] =false', async () => {
 		try{
-			await multisigInstance.confirmTransaction(transactionId, {from: accounts[2]});
+			await multisigInstance.confirmTransaction(transactionId, adrZero, {from: accounts[2]});
 			assert.fail(1);
 		} catch (e) {
 			console.log(e.message);
@@ -169,7 +176,7 @@ contract('MultiSigWallet', (accounts) => {
 	});
 
 
-    it('isConfirmed false', async () => {
+    it('isConfirmed =false', async () => {
 		let a = await multisigInstance.isConfirmed(transactionId);
 		assert.isFalse(a);
 	});
@@ -180,11 +187,9 @@ contract('MultiSigWallet', (accounts) => {
 	});
 
 
-
-
-    it('confirmTransaction accounts[1]', async () => {
+    it('confirmTransaction accounts[1]  next[2]', async () => {
 		try{
-			await multisigInstance.confirmTransaction(transactionId, {from: accounts[1]});
+			await multisigInstance.confirmTransaction(transactionId, accounts[2], {from: accounts[1]});
 			assert.ok(1);
 		} catch (e) {
 			console.log(e.message);
@@ -192,7 +197,23 @@ contract('MultiSigWallet', (accounts) => {
 		}
 	});
 
-    it('isConfirmed true', async () => {
+    it('getConfirmationCount =2', async () => {
+		let a = await multisigInstance.getConfirmationCount(transactionId);
+		assert.equal(a, 2);
+	});
+
+    it('confirmTransaction accounts[2]', async () => {
+		try{
+			await multisigInstance.confirmTransaction(transactionId, adrZero, {from: accounts[2]});
+			assert.ok(1);
+		} catch (e) {
+			console.log(e.message);
+			assert.fail();
+		}
+	});
+
+
+    it('isConfirmed =true', async () => {
 		let a = await multisigInstance.isConfirmed(transactionId);
 		assert.isTrue(a);
 	});

@@ -2,7 +2,7 @@ pragma solidity ^0.4.15;
 
 
 /// @title Test token contract - Allows testing of token transfers with multisig wallet.
-contract TestToken {
+contract DigicusToken {
 
     /*
      *  Events
@@ -14,7 +14,7 @@ contract TestToken {
      *  Constants
      */
     string constant public name = "Digicus";
-    string constant public symbol = "UD";
+    string constant public symbol = "DGS";
     uint8 constant public decimals = 1;
 
     /*
