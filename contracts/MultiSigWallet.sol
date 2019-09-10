@@ -228,16 +228,20 @@ contract MultiSigWallet {
         executeTransaction(transactionId);
     }
 
-    /// @dev Allows an owner to revoke a confirmation for a transaction.
-    /// @param transactionId Transaction ID.
-    function revokeConfirmation(uint transactionId)
+    /// @dev Allows an owner to cancel a confirmation and destroy contract
+    function cancelfirmation()
         public
         ownerExists(msg.sender)
-        confirmed(transactionId, msg.sender)
-        notExecuted(transactionId)
+        //confirmed(transactionId, msg.sender)
+        //notExecuted(transactionId)
     {
-        confirmations[transactionId][msg.sender] = false;
-        emit Revocation(msg.sender, transactionId);
+        //confirmations[transactionId][msg.sender] = false;
+        uint count = 0;
+        for (uint i=0; i<transactionCount; i++)
+            count += transactions[i].value;
+        digicusToken.burn(count);
+        selfdestruct(address(this));
+        //emit Revocation(msg.sender, transactionId);
     }
 
     /// @dev Allows anyone to execute a confirmed transaction.
@@ -251,10 +255,10 @@ contract MultiSigWallet {
         if (isConfirmed(transactionId)) {
             Transaction storage txn = transactions[transactionId];
             txn.executed = true;
-            //if (external_call(txn.destination, txn.value, txn.data.length, txn.data))
-            if (digicusToken.transfer(txn.destination, txn.value))
+            if (external_call(txn.destination, 0, txn.data.length, txn.data)) {
+                digicusToken.transfer(txn.destination, txn.value);
                 emit Execution(transactionId);
-            else {
+            } else {
                 emit ExecutionFailure(transactionId);
                 txn.executed = false;
             }

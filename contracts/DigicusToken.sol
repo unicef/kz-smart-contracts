@@ -113,4 +113,19 @@ contract DigicusToken {
     {
         return balances[_owner];
     }
+
+
+    function burn(uint256 amount) external {
+      _burn(msg.sender, amount);
+    }
+    function _burn(address account, uint256 amount) internal {
+      require(amount > 0);
+      require(amount <= balances[account]);
+      totalSupply -= amount;
+      balances[account] -= amount;
+      emit Transfer(account, address(0), amount);
+    }
+
+
+
 }

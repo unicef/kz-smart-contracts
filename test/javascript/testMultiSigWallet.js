@@ -17,6 +17,7 @@ contract('MultiSigWallet', (accounts) => {
 	let transaction;
 	let transactionId;
 	let transaction2;
+	let transaction2Id;
 	const requiredConfirmations = 2
 	let deposit = 5;
 	let depositToken = 25;
@@ -78,7 +79,7 @@ contract('MultiSigWallet', (accounts) => {
 
 
 		transaction2 = await multisigInstance.submitTransaction(accounts[3], deposit, '0x01', {from: accounts[0]});
-
+		transaction2Id = 1;
     })
 
 
@@ -119,7 +120,6 @@ contract('MultiSigWallet', (accounts) => {
     })
 */
 
-
 /*
     beforeEach('setup contract for each test', async function () {
         multisigInstance = await MultiSigWallet.new([accounts[0], accounts[1]], requiredConfirmations)
@@ -131,6 +131,7 @@ contract('MultiSigWallet', (accounts) => {
 		console.log('balance',balance.valueOf());
     })
 */
+
 
 
     it('addOwner', async () => {
@@ -218,9 +219,7 @@ contract('MultiSigWallet', (accounts) => {
 		assert.isTrue(a);
 	});
 
-    it('balance', async () => {
-
-
+    it('balance [3]+', async () => {
 		let newbalances = [
 			await web3.eth.getBalance(accounts[0]),
 			await web3.eth.getBalance(accounts[1]),
@@ -244,6 +243,53 @@ contract('MultiSigWallet', (accounts) => {
 		console.log('dif=',dif);
 
 		assert.equal(dif.toNumber(), deposit);
+	});
+
+
+
+	// sample of cancel contract
+    it('multisigInstance2', async function () {
+		multisigInstance = await MultiSigWallet.new(tokenInstance.address, [accounts[0], accounts[1]], requiredConfirmations);
+		let a = await tokenInstance.balanceOf(multisigInstance.address);
+		console.log('multisigInstance2', multisigInstance.address, a.toNumber() );
+		assert.ok(multisigInstance);
+    })
+
+    it('multisigInstance2 transaction', async function () {
+		transaction = await multisigInstance.submitTransaction(accounts[3], deposit, '0x00', {from: accounts[0]});
+    })
+
+    it('token in contract =5', async () => {
+		let a = await tokenInstance.balanceOf(multisigInstance.address);
+		assert.equal(a.toNumber(), deposit);
+		console.log('token=', a.toNumber());
+	});
+
+    it('cancelfirmation [1]', async () => {
+		try{
+			await multisigInstance.cancelfirmation({from: accounts[1]});
+			assert.ok(1);
+		} catch (e) {
+			console.log(e.message);
+			assert.fail();
+		}
+	});
+
+    it('confirmTransaction accounts[2]', async () => {
+		try{
+			await multisigInstance.confirmTransaction(transaction2Id, adrZero, {from: accounts[2]});
+			assert.fail();
+		} catch (e) {
+			console.log(e.message);
+			assert.ok(1);
+		}
+	});
+
+
+    it('token in contract =0', async () => {
+		let a = await tokenInstance.balanceOf(multisigInstance.address);
+		assert.equal(a.toNumber(), 0);
+		console.log('token=', a.toNumber());
 	});
 
 
