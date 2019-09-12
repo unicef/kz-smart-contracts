@@ -63,8 +63,10 @@ contract('MultiSigWallet', (accounts) => {
 
     })
 
-
-
+    it('multisig state =0 (new)', async function () {
+		let a = await multisigInstance.state.call();
+		assert.equal(a.toNumber(), 0);
+    })
 
     it('submitTransaction 0=>3  0=>3', async function () {
 		await tokenInstance.issueTokens(accounts[0], depositToken);
@@ -213,11 +215,15 @@ contract('MultiSigWallet', (accounts) => {
 		}
 	});
 
-
     it('isConfirmed =true', async () => {
 		let a = await multisigInstance.isConfirmed(transactionId);
 		assert.isTrue(a);
 	});
+
+    it('multisig state =1 (completed)', async function () {
+		let a = await multisigInstance.state.call();
+		assert.equal(a.toNumber(), 1);
+    })
 
     it('balance [3]+', async () => {
 		let newbalances = [
@@ -275,16 +281,15 @@ contract('MultiSigWallet', (accounts) => {
 		}
 	});
 
-    it('confirmTransaction accounts[2]', async () => {
+    it('multisig state = (canceled)', async function () {
 		try{
-			await multisigInstance.confirmTransaction(transaction2Id, adrZero, {from: accounts[2]});
-			assert.fail();
+			let a = await multisigInstance.state.call();
+			assert.equal(a.toNumber(), 2);
 		} catch (e) {
-			console.log(e.message);
+			//console.log(e.message);
 			assert.ok(1);
 		}
-	});
-
+    });
 
     it('token in contract =0', async () => {
 		let a = await tokenInstance.balanceOf(multisigInstance.address);

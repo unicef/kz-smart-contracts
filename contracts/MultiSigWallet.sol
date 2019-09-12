@@ -35,6 +35,8 @@ contract MultiSigWallet {
     address[] public owners;
     uint public required;
     uint public transactionCount;
+    // current state of contract 0=new, 1=completed
+    uint public state;
 
     struct Transaction {
         address destination;
@@ -120,6 +122,7 @@ contract MultiSigWallet {
         }
         owners = _owners;
         required = _required;
+        state = 0;
         digicusToken = DigicusToken(_token);
     }
 
@@ -258,6 +261,7 @@ contract MultiSigWallet {
             if (external_call(txn.destination, 0, txn.data.length, txn.data)) {
                 digicusToken.transfer(txn.destination, txn.value);
                 emit Execution(transactionId);
+                state = 1;
             } else {
                 emit ExecutionFailure(transactionId);
                 txn.executed = false;
