@@ -24,23 +24,34 @@ Run Mocha test in truffle:
 
 
 Call contract function:
-truffle> var Contract = await MultiSigWallet.deployed();
-truffle> Contract.addOwner(owner);
+truffle> var multisigInstance = await MultiSigWallet.new(tokenInstance.address, [accounts[0], accounts[1]], requiredConfirmations);
+truffle> await multisigInstance.confirmTransaction(transactionId, accounts[2], {from: accounts[1]});
+
+-------------
+Step-by-step confirmation scheme:
+1. Deploy contract
+MultiSigWallet.new(tokenInstance.address, [accounts[0], accounts[1]], requiredConfirmations)
+ create transaction and atokens in contract
+multisigInstance.submitTransaction(accounts[3], deposit, '0x0123', {from: accounts[0]});
+2. Confirmation by owner
+multisigInstance.confirmTransaction(transactionId, nextAccount, {from: accounts[1]});
+3. next account confirmation and next confirmation ...
+4. last confirmation
+multisigInstance.confirmTransaction(transactionId, zeroAccount, {from: accounts[2]});
+5. Complete. Token send. Contract end.
+
+Or cancel scheme:
+4. Owner cancel confirmation
+multisigInstance.cancelfirmation({from: accounts[1]});
+5. Contract end. Transaction destroyed. Token destroyed.
+
+
+
+
+
 
 
 Function list:
-
-    /// @dev Allows to add a new owner. Transaction has to be sent by wallet.
-    /// @param owner Address of new owner.
-    function addOwner(address owner)
-
-    /// @dev Allows to remove an owner. Transaction has to be sent by wallet.
-    /// @param owner Address of owner.
-    function removeOwner(address owner)
-
-    /// @dev Allows to change the number of required confirmations. Transaction has to be sent by wallet.
-    /// @param _required Number of required confirmations.
-    function changeRequirement(uint _required)
 
     /// @dev Allows an owner to submit and confirm a transaction.
     /// @param destination Transaction target address.
@@ -51,15 +62,11 @@ Function list:
 
     /// @dev Allows an owner to confirm a transaction.
     /// @param transactionId Transaction ID.
-    function confirmTransaction(uint transactionId)
+    /// @param newOwner next owner to confirmation.
+    function confirmTransaction(uint transactionId, address newOwner)
 
-    /// @dev Allows an owner to revoke a confirmation for a transaction.
-    /// @param transactionId Transaction ID.
-    function revokeConfirmation(uint transactionId)
-
-    /// @dev Allows anyone to execute a confirmed transaction.
-    /// @param transactionId Transaction ID.
-    function executeTransaction(uint transactionId)
+    /// @dev Allows an owner to cancel a confirmation and destroy contract
+    function cancelfirmation()
 
     /// @dev Returns the confirmation status of a transaction.
     /// @param transactionId Transaction ID.

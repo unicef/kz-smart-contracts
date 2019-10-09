@@ -1,7 +1,6 @@
 const MultiSigWallet = artifacts.require('MultiSigWallet')
 const web3 = MultiSigWallet.web3
 const DigicusToken = artifacts.require('DigicusToken')
-//const TestCalls = artifacts.require('TestCalls')
 const utils = require('./utils')
 
 
@@ -73,12 +72,13 @@ contract('MultiSigWallet', (accounts) => {
 		let balance = await tokenInstance.balanceOf(accounts[0]);
 		assert.equal(balance.toNumber(), depositToken);
 
-		transaction = await multisigInstance.submitTransaction(accounts[3], deposit, '0x00', {from: accounts[0]});
+		transaction = await multisigInstance.submitTransaction(accounts[3], deposit, [0x01, 0x23], {from: accounts[0]});
 		transactionId = 0;
+		//console.log(await web3.eth.getTransactionReceipt(transaction.tx));
+
 		//await tokenInstance.issueTokens(multisigInstance.address, depositToken);
 		let a = await tokenInstance.balanceOf(multisigInstance.address);
 		console.log('multisig tokens', a.toNumber());
-
 
 		transaction2 = await multisigInstance.submitTransaction(accounts[3], deposit, '0x01', {from: accounts[0]});
 		transaction2Id = 1;
@@ -113,40 +113,6 @@ contract('MultiSigWallet', (accounts) => {
 		assert.deepEqual([accounts[0], accounts[1]], owners );
     })
 
-/*
-    it('deposit '+deposit, async () => {
-        await new Promise((resolve, reject) => web3.eth.sendTransaction({to: multisigInstance.address, value: deposit, from: accounts[0]}, e => (e ? reject(e) : resolve())))
-        const balance = await utils.balanceOf(web3, multisigInstance.address);
-		console.log('balance', balance);
-		assert.equal(balance.valueOf(), deposit );
-    })
-*/
-
-/*
-    beforeEach('setup contract for each test', async function () {
-        multisigInstance = await MultiSigWallet.new([accounts[0], accounts[1]], requiredConfirmations)
-        tokenInstance = await TestToken.new();
-        callsInstance = await TestCalls.new();
-
-        await new Promise((resolve, reject) => web3.eth.sendTransaction({to: multisigInstance.address, value: deposit, from: accounts[0]}, e => (e ? reject(e) : resolve())))
-        const balance = await utils.balanceOf(web3, multisigInstance.address);
-		console.log('balance',balance.valueOf());
-    })
-*/
-
-
-
-    it('addOwner', async () => {
-		await multisigInstance.addOwner(accounts[2]);
-		let owners = await multisigInstance.getOwners();
-		assert.deepEqual([accounts[0], accounts[1], accounts[2]], owners );
-	});
-
-    it('changeRequirement =3', async () => {
-		await multisigInstance.changeRequirement(3);
-		let a = await multisigInstance.required();
-		assert.equal(a, 3);
-	});
 
     it('confirmTransaction accounts[2] =false', async () => {
 		try{
@@ -156,14 +122,6 @@ contract('MultiSigWallet', (accounts) => {
 			console.log(e.message);
 			assert.ok(1);
 		}
-	});
-
-
-    it('removeOwner', async () => {
-		await multisigInstance.changeRequirement(2);
-		await multisigInstance.removeOwner(accounts[2]);
-		let owners = await multisigInstance.getOwners();
-		assert.deepEqual([accounts[0], accounts[1]], owners );
 	});
 
     it('getConfirmations', async () => {
@@ -252,54 +210,6 @@ contract('MultiSigWallet', (accounts) => {
 	});
 
 
-
-	// sample of cancel contract
-    it('multisigInstance2', async function () {
-		multisigInstance = await MultiSigWallet.new(tokenInstance.address, [accounts[0], accounts[1]], requiredConfirmations);
-		let a = await tokenInstance.balanceOf(multisigInstance.address);
-		console.log('multisigInstance2', multisigInstance.address, a.toNumber() );
-		assert.ok(multisigInstance);
-    })
-
-    it('multisigInstance2 transaction', async function () {
-		transaction = await multisigInstance.submitTransaction(accounts[3], deposit, '0x00', {from: accounts[0]});
-    })
-
-    it('token in contract =5', async () => {
-		let a = await tokenInstance.balanceOf(multisigInstance.address);
-		assert.equal(a.toNumber(), deposit);
-		console.log('token=', a.toNumber());
-	});
-
-    it('cancelfirmation [1]', async () => {
-		try{
-			await multisigInstance.cancelfirmation({from: accounts[1]});
-			assert.ok(1);
-		} catch (e) {
-			console.log(e.message);
-			assert.fail();
-		}
-	});
-
-    it('multisig state = (canceled)', async function () {
-		try{
-			let a = await multisigInstance.state.call();
-			assert.equal(a.toNumber(), 2);
-		} catch (e) {
-			//console.log(e.message);
-			assert.ok(1);
-		}
-    });
-
-    it('token in contract =0', async () => {
-		let a = await tokenInstance.balanceOf(multisigInstance.address);
-		assert.equal(a.toNumber(), 0);
-		console.log('token=', a.toNumber());
-	});
-
-
-
-//Error: Returned error: VM Exception while processing transaction: revert
 
 
 });

@@ -15,7 +15,7 @@ contract DigicusToken {
      */
     string constant public name = "Digicus";
     string constant public symbol = "DGS";
-    uint8 constant public decimals = 1;
+    uint8 constant public decimals = 2;
 
     /*
      *  Storage
